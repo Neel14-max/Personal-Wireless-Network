@@ -17,21 +17,18 @@ public class TetherTileService extends TileService {
     public void onClick() {
         int st = TetherUi.state();
         if (st == TetherUi.STATE_OFF) {
-            if (!TetherUi.hasPermissions(this)) {
-                openApp();
-                return;
-            }
-            Intent i = TetherUi.serviceIntent(this, true);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(i);
-            else startService(i);
+            // Launch via an invisible activity so Android always allows the foreground service.
+            openStarter();
+        } else if (st == TetherUi.STATE_STARTING) {
+            // Still starting: ignore extra taps so we don't cancel it by accident.
         } else {
             startService(TetherUi.serviceIntent(this, false));
         }
         render();
     }
 
-    private void openApp() {
-        Intent i = new Intent(this, MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+    private void openStarter() {
+        Intent i = new Intent(this, TetherStartActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         if (Build.VERSION.SDK_INT >= 34) {
             startActivityAndCollapse(PendingIntent.getActivity(this, 0, i, PendingIntent.FLAG_IMMUTABLE));
         } else {
@@ -48,7 +45,10 @@ public class TetherTileService extends TileService {
         t.setState(st == TetherUi.STATE_OFF || st == TetherUi.STATE_ERROR
                 ? Tile.STATE_INACTIVE : Tile.STATE_ACTIVE);
         if (Build.VERSION.SDK_INT >= 29) {
-            t.setSubtitle(getString(st == TetherUi.STATE_ON ? R.string.state_on
+            String err = P2pService.currentError;
+            if (st == TetherUi.STATE_ERROR && err != null && !err.isEmpty()) {
+                t.setSubtitle(err.length() > 40 ? err.substring(0, 40) + "…" : err);
+            } else t.setSubtitle(getString(st == TetherUi.STATE_ON ? R.string.state_on
                     : st == TetherUi.STATE_STARTING ? R.string.state_starting
                     : st == TetherUi.STATE_ERROR ? R.string.state_error : R.string.state_off));
         }

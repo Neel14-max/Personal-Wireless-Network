@@ -68,12 +68,10 @@ public final class TetherUi {
         if (on || st == STATE_ERROR) {
             // Active -> tap stops it.
             pi = PendingIntent.getService(c, 1, serviceIntent(c, false), flags);
-        } else if (hasPermissions(c)) {
-            // Inactive -> tap starts the foreground service directly (like the hotspot tile).
-            pi = PendingIntent.getForegroundService(c, 2, serviceIntent(c, true), flags);
         } else {
-            // First run: open the app so the user can grant permissions.
-            pi = PendingIntent.getActivity(c, 3, new Intent(c, MainActivity.class), flags);
+            // Inactive -> invisible starter activity (handles permissions + foreground service).
+            Intent i = new Intent(c, TetherStartActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            pi = PendingIntent.getActivity(c, 2, i, flags);
         }
         rv.setOnClickPendingIntent(R.id.widget_root, pi);
         mgr.updateAppWidget(ids, rv);

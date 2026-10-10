@@ -64,7 +64,15 @@ public class P2pService extends Service {
 
     @Override public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent != null) {
-            if (ACTION_START.equals(intent.getAction())) startSharing();
+            if (ACTION_START.equals(intent.getAction())) {
+                try { startSharing(); }
+                catch (Throwable t) {
+                    currentError = "Start failed: " + t.getClass().getSimpleName() + " - " + t.getMessage();
+                    Log.e(TAG, currentError, t);
+                    isActive = true;
+                    TetherUi.refresh(this);
+                }
+            }
             else if (ACTION_STOP.equals(intent.getAction())) stopSharing();
         }
         return START_STICKY;
@@ -99,6 +107,9 @@ public class P2pService extends Service {
                 currentError = msg == null ? "Unknown Wi-Fi Direct error" : msg;
                 updateNotif("P2P ERROR", currentError);
                 Log.e(TAG, currentError);
+                new android.os.Handler(android.os.Looper.getMainLooper()).post(() ->
+                        android.widget.Toast.makeText(P2pService.this, currentError,
+                                android.widget.Toast.LENGTH_LONG).show());
                 TetherUi.refresh(P2pService.this);
             }
         });
