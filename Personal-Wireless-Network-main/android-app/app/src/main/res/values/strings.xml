@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">TetherDirect</string>
+    <string name="tile_label">Tether Direct</string>
+    <string name="state_off">Off</string>
+    <string name="state_starting">Starting…</string>
+    <string name="state_on">On</string>
+    <string name="state_error">Error</string>
+    <string name="widget_description">One-tap button to start or stop Tether Direct</string>
+</resources>
