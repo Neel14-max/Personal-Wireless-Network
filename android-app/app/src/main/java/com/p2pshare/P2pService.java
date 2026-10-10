@@ -42,6 +42,7 @@ public class P2pService extends Service {
     public static volatile boolean isRunning = false;
     /** True from the moment sharing is requested until it is stopped (used by tile/widget). */
     public static volatile boolean isActive = false;
+    public static volatile long startedAt = 0L;
     public static volatile String currentGroupName = "";
     public static volatile String currentGroupPass = "";
     public static volatile String currentError = "";
@@ -82,6 +83,7 @@ public class P2pService extends Service {
         startForeground(NOTIF_ID, buildNotif("Starting Wi-Fi Direct..."));
         if (isActive) return; // already started (e.g. repeated tile/widget tap)
         isActive = true;
+        startedAt = System.currentTimeMillis();
         TetherUi.refresh(this);
         currentError = "";
         proxyStatus = "Requesting mobile Internet...";
@@ -416,13 +418,14 @@ public class P2pService extends Service {
         } catch (Exception ignored) {}
         networkCallback = null;
         mobileNetwork = null;
-        if (p2pManager != null) p2pManager.removeGroup();
+        try { if (p2pManager != null) p2pManager.removeGroup(); } catch (Throwable ignored) {}
         isRunning = false;
         currentGroupName = "";
         currentGroupPass = "";
         currentError = "";
         proxyStatus = "Stopped";
         isActive = false;
+        startedAt = 0L;
         TetherUi.refresh(this);
         stopForeground(STOP_FOREGROUND_REMOVE);
         stopSelf();

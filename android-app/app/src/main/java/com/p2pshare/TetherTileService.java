@@ -19,8 +19,9 @@ public class TetherTileService extends TileService {
         if (st == TetherUi.STATE_OFF) {
             // Launch via an invisible activity so Android always allows the foreground service.
             openStarter();
-        } else if (st == TetherUi.STATE_STARTING) {
-            // Still starting: ignore extra taps so we don't cancel it by accident.
+        } else if (st == TetherUi.STATE_STARTING
+                && System.currentTimeMillis() - P2pService.startedAt < 3000) {
+            // Just started: ignore an accidental double tap, but allow stopping after 3s.
         } else {
             startService(TetherUi.serviceIntent(this, false));
         }
