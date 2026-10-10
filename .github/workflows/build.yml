@@ -25,11 +25,14 @@ jobs:
         with:
           gradle-version: '8.5'
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
+      # ubuntu-latest already ships the Android SDK; the setup-android action
+      # currently fails trying to install the obsolete 'tools' package.
       - name: Install Android 34 SDK
-        run: sdkmanager "platforms;android-34" "build-tools;34.0.0"
+        run: |
+          SDKM="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          [ -x "$SDKM" ] || SDKM="$(ls -d $ANDROID_HOME/cmdline-tools/*/bin/sdkmanager | tail -1)"
+          yes | "$SDKM" --licenses > /dev/null || true
+          "$SDKM" "platforms;android-34" "build-tools;34.0.0"
 
       - name: Build debug APK
         working-directory: android-app
